@@ -1,83 +1,72 @@
+android_sdk_repository(
+    name = "androidsdk",
+    path = "/Users/admin/Library/Android/sdk",
+    api_level = 33,
+    build_tools_version = "30.0.3"
+)
+#Added Kotlin
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# rules required for ios-app
+rules_kotlin_version = "legacy-1.3.0-rc1"
+rules_kotlin_sha = "9de078258235ea48021830b1669bbbb678d7c3bdffd3435f4c0817c921a88e42"
+http_archive(
+    name = "io_bazel_rules_kotlin",
+    urls = ["https://github.com/bazelbuild/rules_kotlin/archive/%s.zip" % rules_kotlin_version],
+    type = "zip",
+    strip_prefix = "rules_kotlin-%s" % rules_kotlin_version,
+    sha256 = rules_kotlin_sha
+)
+
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kotlin_repositories", "kt_register_toolchains")
+kotlin_repositories()
+kt_register_toolchains()
+
+RULES_JVM_EXTERNAL_TAG = "2.2"
+RULES_JVM_EXTERNAL_SHA = "f1203ce04e232ab6fdd81897cf0ff76f2c04c0741424d192f28e65ae752ce2d6"
 
 http_archive(
-    name = "build_bazel_rules_apple",
-    sha256 = "90e3b5e8ff942be134e64a83499974203ea64797fd620eddeb71b3a8e1bff681",
-    url = "https://github.com/bazelbuild/rules_apple/releases/download/1.1.2/rules_apple.1.1.2.tar.gz",
+    name = "rules_jvm_external",
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+    sha256 = RULES_JVM_EXTERNAL_SHA,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
 )
 
-load(
-    "@build_bazel_rules_apple//apple:repositories.bzl",
-    "apple_rules_dependencies",
-)
+load("@rules_jvm_external//:defs.bzl", "maven_install")
 
-apple_rules_dependencies()
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-load(
-    "@build_bazel_rules_swift//swift:repositories.bzl",
-    "swift_rules_dependencies",
-)
-
-swift_rules_dependencies()
-
-load(
-    "@build_bazel_rules_swift//swift:extras.bzl",
-    "swift_rules_extra_dependencies",
-)
-
-swift_rules_extra_dependencies()
-
-load(
-    "@build_bazel_apple_support//lib:repositories.bzl",
-    "apple_support_dependencies",
-)
-
-apple_support_dependencies()
-
-# rules required by ios-app Xcode integration
+RULES_JVM_EXTERNAL_TAG = "4.4.2"
+RULES_JVM_EXTERNAL_SHA = "735602f50813eb2ea93ca3f5e43b1959bd80b213b836a07a62a29d757670b77b"
 
 http_archive(
-    name = "com_github_buildbuddy_io_rules_xcodeproj",
-    sha256 = "cb4ae95d86a1961734f17a1d4743010480a576214519ceb2ce9cec34b88da7b2",
-    strip_prefix = "rules_xcodeproj-0bad4f33c462f5a26e4c13861afd181e56729938",
-    url = "https://github.com/buildbuddy-io/rules_xcodeproj/archive/0bad4f33c462f5a26e4c13861afd181e56729938.tar.gz",
+    name = "rules_jvm_external",
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+    sha256 = RULES_JVM_EXTERNAL_SHA,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/refs/tags/%s.zip" % RULES_JVM_EXTERNAL_TAG,
 )
 
-load(
-    "@com_github_buildbuddy_io_rules_xcodeproj//xcodeproj:repositories.bzl",
-    "xcodeproj_rules_dependencies",
-)
+maven_install(
+    artifacts = [
+        "androidx.appcompat:appcompat:1.0.2",
+        "androidx.fragment:fragment:1.0.0",
+        "androidx.core:core:1.0.1",
+        "androidx.lifecycle:lifecycle-runtime:2.0.0",
+        "androidx.lifecycle:lifecycle-viewmodel:2.0.0",
+        "androidx.drawerlayout:drawerlayout:1.0.0",
+        "androidx.constraintlayout:constraintlayout:1.1.3",
+        "com.google.android.material:material:1.0.0",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2",
+        "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.2",
+        "com.google.android.material:material:1.8.0-alpha02",
+        "androidx.cardview:cardview:1.0.0",
+        "androidx.lifecycle:lifecycle-livedata:2.2.0",
+        "android.arch.lifecycle:extensions:1.1.1",
+        "com.android.support:cardview-v7:27.1.1",
+        "com.android.support:design:27.1.1",
 
-xcodeproj_rules_dependencies()
-
-# rules required by backend
-
-http_archive(
-    name = "io_bazel_rules_appengine",
-    strip_prefix = "rules_appengine-8099725bab2fa01ccd385fac2f78278ea8145a7a",
-    # TODO: update to a release version that contains 339f6aba67fcedb7268cf54d1163cf7704a277ca.
-    # This commit fixes the Maven artifact URLs to use "https" instead of "http".
-    # We don't specify sha256, because the sha256 of GitHub-served non-release archives isn't
-    # stable.
-    urls = ["https://github.com/bazelbuild/rules_appengine/archive/8099725bab2fa01ccd385fac2f78278ea8145a7a.tar.gz"],
-)
-
-load(
-    "@io_bazel_rules_appengine//appengine:java_appengine.bzl",
-    "java_appengine_repositories",
-)
-
-java_appengine_repositories()
-
-# rules required by android
-
-android_sdk_repository(name = "androidsdk")
-
-http_archive(
-    name = "rules_android",
-    sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
-    strip_prefix = "rules_android-0.1.1",
-    urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
+    ],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
 )
